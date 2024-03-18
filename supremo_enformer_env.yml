@@ -1,0 +1,18 @@
+name: supremo_enformer_env
+channels:
+  - conda-forge
+  - bioconda
+  - defaults
+dependencies:
+  - python=3.10
+  - pip=24.0
+  - biopython
+  - numpy
+  - pandas
+  - pyarrow
+  - tensorflow
+  - tensorflow-hub
+  - kipoiseq
+  - dm-sonnet
+  - pip:
+      - pysam

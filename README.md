@@ -59,7 +59,6 @@ python -c "import tensorflow"
 ```
 *This should not result in any errors (warnings are ok).*
 
-
 2. Install [basenji](https://github.com/calico/basenji) with no dependencies and set environmental variables: 
 ```shell
 git clone https://github.com/calico/basenji.git
@@ -100,7 +99,19 @@ Currently accepted genomes are hg19 and hg38.
 
 \*If you choose to opt out of this, you will need to specify the path to an existing fasta file using the --fa parameter.
 
+**For SuPreMo-Enformer:**
 
+1. Create conda environment:
+```shell
+conda env create -f supremo_enformer_env.yml
+```
+*You might be asked to confirm installation with a 'y'.*
+
+```shell
+conda activate supremo_enformer_env
+python -c "import tensorflow"
+```
+*This should not result in any errors (warnings are ok).*
 
 ## Use
 
