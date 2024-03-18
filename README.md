@@ -109,7 +109,7 @@ conda env create -f supremo_enformer_env.yml
 
 ```shell
 conda activate supremo_enformer_env
-python -c "import tensorflow"
+python scripts/test_install_SuPreMo-Enformer.py
 ```
 *This should not result in any errors (warnings are ok).*
 

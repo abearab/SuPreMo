@@ -4,13 +4,13 @@ channels:
   - bioconda
   - defaults
 dependencies:
-  - python=3.10
+  - python
   - pip=24.0
   - biopython
   - numpy
   - pandas
   - pyarrow
-  - tensorflow
+  - tensorflow=2.13
   - tensorflow-hub
   - kipoiseq
   - dm-sonnet
