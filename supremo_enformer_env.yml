@@ -9,10 +9,14 @@ dependencies:
   - biopython
   - numpy
   - pandas
+  - matplotlib
   - pyarrow
   - tensorflow=2.13
   - tensorflow-hub
   - kipoiseq
   - dm-sonnet
+  - scikit-image
+  - scikit-learn
   - pip:
       - pysam
+      - cooltools
