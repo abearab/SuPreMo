@@ -1,4 +1,5 @@
 import numpy as np
+import pandas as pd
 import sys
 sys.path.insert(0, './scripts/')
 from bin_utils import get_bin
@@ -11,9 +12,7 @@ def mask_matrices(REF_pred, ALT_pred, SVTYPE, SVLEN, var_rel_pos, bin_size, offs
     Mask reference and alternate predicted matrices based on the type of variant.
     
     '''
-
-
-    if SVTYPE in ['DEL', 'DUP']:
+    if SVTYPE in ['DEL', 'DUP', "INS"]:
         
         # Insertions: Add nans to reference matrix and crop ends, then mirror nans to alternate matrix
         
@@ -63,11 +62,7 @@ def mask_matrices(REF_pred, ALT_pred, SVTYPE, SVLEN, var_rel_pos, bin_size, offs
             # Deletions: Swap reference and alternate values back
             REF_pred_masked, ALT_pred_masked = ALT_pred_masked, REF_pred_masked
         
-        
-        
-    
     # Inversions: Mask REF and mirror nans to ALT
-    
     elif SVTYPE == 'INV':
         
         var_start = get_bin(var_rel_pos[0], bin_size, offset)
@@ -93,8 +88,8 @@ def mask_matrices(REF_pred, ALT_pred, SVTYPE, SVLEN, var_rel_pos, bin_size, offs
         
         
     if len(REF_pred_masked) != target_length_cropped:
-        print(len(REF_pred_masked))
-        print(target_length_cropped)
+        # print(len(REF_pred_masked))
+        # print(target_length_cropped)
         raise ValueError('Masked reference matrix is not the right size.')    
         
         
@@ -103,3 +98,50 @@ def mask_matrices(REF_pred, ALT_pred, SVTYPE, SVLEN, var_rel_pos, bin_size, offs
     
     
     return REF_pred_masked, ALT_pred_masked
+
+def get_masked_BND_maps(matrices, rel_pos_map, target_length_cropped):
+
+    # Get REF and ALT vectors, excluding diagonal
+    indexes_left = rel_pos_map
+    indexes_right = target_length_cropped - rel_pos_map
+
+    REF_L = get_left_BND_map(matrices[0], rel_pos_map)
+    REF_R = get_right_BND_map(matrices[1], rel_pos_map)
+
+    return (assemple_BND_maps(REF_L, REF_R, rel_pos_map, target_length_cropped),matrices[2])
+
+def get_left_BND_map(pred_matrix, rel_pos_map):
+
+    '''
+    Take upper left quarter (or more or less if shifted) of the matrix.
+
+    '''
+    
+    left_BND_map = pred_matrix[:int(rel_pos_map)]
+    return left_BND_map
+    
+    
+    
+def get_right_BND_map(pred_matrix, rel_pos_map):
+    
+    '''
+    Take lower right quarter (or more or less if shifted) of the matrix.
+
+    ''' 
+    right_BND_map = pred_matrix[int(rel_pos_map):]
+    return right_BND_map
+
+def assemple_BND_maps(vector_repr_L, vector_repr_R, BND_rel_pos_map, matrix_len, num_diags = 1):
+    
+    '''
+    This applies to BND predcitions.
+
+    Get predicted matrix from Akita predictions. 
+    Output is a 448x448 array with the contact frequency at each 2048 bp bin corresponding to a 917,504 bp sequence (32 bins are cropped on each end from the prediction).
+ 
+    '''
+    # Create empty matrix of NAs to place values in
+    z = np.zeros(matrix_len) #,matrix_len))
+    z[:BND_rel_pos_map] = vector_repr_L
+    z[BND_rel_pos_map:] = vector_repr_R
+    return z

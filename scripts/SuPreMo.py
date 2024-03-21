@@ -663,7 +663,7 @@ while True:
                     print(str(var_index) + ' (' + str(shift) + f' shift{revcomp_annot})')
 
                 except Exception as e:
-                     print(str(var_index) + ' (' + str(shift) + f' shift{revcomp_annot})' + ': Error:', e)
+                    print(str(var_index) + ' (' + str(shift) + f' shift{revcomp_annot})' + ': Error:', e)
 
 
     # Write standard output with error messages and warnings to log file

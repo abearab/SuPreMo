@@ -10,7 +10,7 @@ import sys
 sys.path.insert(0, './scripts/')
 from bin_utils import get_bin
 from scoring_methods import common_scoring_methods
-from mask_utils import mask_matrices
+from mask_utils import mask_matrices, get_masked_BND_maps
 
 enformer_model = hub.load("https://kaggle.com/models/deepmind/enformer/frameworks/TensorFlow2/variations/enformer/versions/1").model
 repo_path = Path(__file__).parents[1]
@@ -73,7 +73,10 @@ def get_scores(POS, SVTYPE, SVLEN, sequences, scores, shift, revcomp, get_tracks
         if idx is None:
             idx = 1186
         matrices = predictions['human'][:, :, idx]
-    matrices = [matrices[0].numpy(), matrices[1].numpy()]
+    if matrices.shape[0] == 2:
+        matrices = [matrices[0].numpy(), matrices[1].numpy()]
+    elif matrices.shape[0] == 3:
+        matrices = [matrices[0].numpy(), matrices[1].numpy(), matrices[2].numpy()]
  
     if revcomp:
         matrices = [np.flipud(x) for x in matrices]
@@ -93,7 +96,7 @@ def get_scores(POS, SVTYPE, SVLEN, sequences, scores, shift, revcomp, get_tracks
             rel_pos_map = get_bin(var_rel_pos[1], bin_size, offset)
     
     if SVTYPE == "BND":
-        matrices = get_masked_BND_maps(matrices, rel_pos_map)
+        matrices = get_masked_BND_maps(matrices, rel_pos_map, target_length_cropped)
 
     # Calculate scores 
     scores_results = {} 
