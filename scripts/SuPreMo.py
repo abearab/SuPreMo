@@ -114,7 +114,7 @@ optional arguments:
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 # Parse through arguments
-
+import pickle
 import argparse
 
 class CustomFormatter(argparse.RawTextHelpFormatter, argparse.ArgumentDefaultsHelpFormatter):
@@ -382,7 +382,6 @@ if seq_len != 1048576:
 if get_Enformer_scores:
    seq_len = 393216
    get_maps = False
-   get_tracks = False
 
 if svlen_limit is None:
     svlen_limit = 2/3*seq_len
@@ -634,6 +633,10 @@ while True:
                                                                    sequences_i, scores_to_use,
                                                                    shift, revcomp,
                                                                    get_tracks)
+                        if get_tracks:
+                            for track in [x for x in scores.keys() if 'track' in x]:
+                                variant_tracks[f'{var_index}_{track}_{shift}{revcomp_annot}'] = scores[track]
+                                del scores[track]
                         for score in scores:
                             variant_scores.loc[variant_scores.var_index == var_index,
                                                f'{score}_{shift}{revcomp_annot}'] = scores[score]
@@ -685,7 +688,7 @@ while True:
             sequences_all.update(sequences)
 
     # Write scores to data frame
-    if get_Akita_scores:
+    if get_Akita_scores or get_Enformer_scores:
 
         # Take average of augmented sequences
         if augment:
@@ -761,7 +764,11 @@ if get_seq:
     
 # Write disruption tracks and/or predictions to array
 if get_tracks:
-    np.save(f'{out_file}_tracks.npy', variant_tracks_all) 
+    if get_Enformer_scores:
+        with open(f'{out_file}_tracks.pkl', "wb") as f:
+            pickle.dump(variant_tracks_all, f)
+    else:
+        np.save(f'{out_file}_tracks.npy', variant_tracks_all) 
 if get_maps:
     np.save(f'{out_file}_maps.npy', variant_maps_all) 
 
@@ -775,7 +782,7 @@ os.system(f'rm -f {out_file}_log; \
             for file in {out_file}_log_*; \
             do cat "$file" >> {out_file}_log && rm "$file"; \
             done')
-if get_Akita_scores:
+if get_Akita_scores | get_Enformer_scores:
     os.system(f'rm -f {out_file}_scores; \
                 for file in {out_file}_scores_*; \
                 do cat "$file" >> {out_file}_scores && rm "$file"; \

@@ -101,7 +101,10 @@ def get_scores(POS, SVTYPE, SVLEN, sequences, scores, shift, revcomp, get_tracks
     # Calculate scores 
     scores_results = {} 
     for score in scores:
-        scores_results[score] = getattr(common_scoring_methods(matrices[0], matrices[1]),  score)() 
+        scores_results[score] = getattr(common_scoring_methods(matrices[0], matrices[1]), score)() 
+
+        if get_tracks:
+            scores_results[f"{score}_track"] = matrices
 
     return scores_results
 
