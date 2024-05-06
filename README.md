@@ -168,6 +168,7 @@ python scripts/SuPreMo.py INPUT <args>
     * `--augment`: Get scores for augmented predictions (mean and median scores from predictions with shifts and reverse complement). 
     * `--get_maps`: Get predicted contact frequency maps.
     * `--get_tracks`: Get disruption score tracks.
+- get_Enformer_scores arguments: T.B.D
 
 If multiple inputs are given for an argument, they should be space-separated.
 
@@ -207,7 +208,8 @@ Superscript descriptions:
 5. Relative position of variant in sequence (list of two for non-BND variant positions in reference and alternate sequence and an integer for BND breakend position in reference and alternate sequences). 
 6. Method used to calculate disruption score;
 
-
+**SuPreMo-Enformer output**
+T.B.D.
 
 ## Tutorials
 
@@ -240,6 +242,7 @@ We have generated two categories of test sets:
 
 These are sets of 347 variants that are meant to include all edge cases that SuPreMo should handle and to ensure that SuPreMo is working appropriately with only expected errors and warnings appearing. These were run using the following commands and the outputs are saved in [test_data/test_set_edge_cases/](https://github.com/ketringjoni/SuPreMo/blob/main/test_data/test_set_edge_cases/)
 
+For Akita:
 ```shell
 python scripts/SuPreMo.py test_data/test_set_edge_cases/test_set_edge_SV.bed \
                             --dir test_data/test_set_edge_cases \
@@ -254,6 +257,23 @@ python scripts/SuPreMo.py test_data/test_set_edge_cases/test_set_edge_simple.bed
                             --shift_by -10000 0 10000 \
                             --revcomp add_revcomp \
                             --get_Akita_scores
+```
+
+For Enformer:
+```
+python scripts/SuPreMo.py test_data/test_set_edge_cases/test_set_edge_SV.bed \
+                            --dir test_data/test_set_edge_cases \
+                            --file test_set_edge_SV \
+                            --shift_by -10000 0 10000 \
+                            --get_Enformer_scores
+```
+```shell                            
+python scripts/SuPreMo.py test_data/test_set_edge_cases/test_set_edge_simple.bed \
+                            --dir test_data/test_set_edge_cases \
+                            --file test_set_edge_simple \
+                            --shift_by -10000 0 10000 \
+                            --revcomp add_revcomp \
+                            --get_Enformer_scores
 ```
 
 2. [Test set for sequences](https://github.com/ketringjoni/SuPreMo/blob/main/test_data/test_set_sequences/)
