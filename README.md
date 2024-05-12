@@ -113,6 +113,8 @@ python scripts/test_install_SuPreMo-Enformer.py
 ```
 *This should not result in any errors (warnings are ok).*
 
+2. Download genome fasta file (see section above)
+
 ## Use
 
 ### Input format
@@ -264,14 +266,14 @@ For Enformer:
 python scripts/SuPreMo.py test_data/test_set_edge_cases/test_set_edge_SV.bed \
                             --dir test_data/test_set_edge_cases \
                             --file test_set_edge_SV \
-                            --shift_by -10000 0 10000 \
+                            --shift_by -500 0 500 \
                             --get_Enformer_scores
 ```
 ```shell                            
 python scripts/SuPreMo.py test_data/test_set_edge_cases/test_set_edge_simple.bed \
                             --dir test_data/test_set_edge_cases \
                             --file test_set_edge_simple \
-                            --shift_by -10000 0 10000 \
+                            --shift_by -500 0 500 \
                             --revcomp add_revcomp \
                             --get_Enformer_scores
 ```
