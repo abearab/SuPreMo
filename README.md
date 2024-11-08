@@ -62,7 +62,6 @@ python -c "import tensorflow"
 ```
 *This should not result in any errors (warnings are ok).*
 
-
 2. Install [basenji](https://github.com/calico/basenji) with no dependencies and set environmental variables:
 ```shell
 cd ~/
@@ -107,7 +106,21 @@ Currently accepted genomes are hg19 and hg38.
 
 \*If you choose to opt out of this, you will need to specify the path to an existing fasta file using the --fa parameter.
 
+**For SuPreMo-Enformer:**
 
+1. Create conda environment:
+```shell
+conda env create -f supremo_enformer_env.yml
+```
+*You might be asked to confirm installation with a 'y'.*
+
+```shell
+conda activate supremo_enformer_env
+python scripts/test_install_SuPreMo-Enformer.py
+```
+*This should not result in any errors (warnings are ok).*
+
+2. Download genome fasta file (see section above)
 
 ## Use
 
@@ -170,6 +183,7 @@ python scripts/SuPreMo.py INPUT <args>
     * `--augment`: Get scores for augmented predictions (mean and median scores from predictions with shifts and reverse complement).
     * `--get_maps`: Get predicted contact frequency maps.
     * `--get_tracks`: Get disruption score tracks.
+- get_Enformer_scores arguments: T.B.D
 
 If multiple inputs are given for an argument, they should be space-separated.
 
@@ -213,7 +227,8 @@ For more details on how to use arguments, refer to help page printed at the top 
 7. Scale by which regions of interests were weighted. Only present if --roi was specified.
 8. Cell type used for Akita prediction.
 
-
+**SuPreMo-Enformer output**
+T.B.D.
 
 ## Tutorials
 
@@ -248,6 +263,7 @@ We have generated two categories of test sets:
 
 These are sets of 347 variants that are meant to include all edge cases that SuPreMo should handle and to ensure that SuPreMo is working appropriately with only expected errors and warnings appearing. These were run using the following commands and the outputs are saved in [test_data/test_set_edge_cases/output](https://github.com/ketringjoni/SuPreMo/blob/main/test_data/test_set_edge_cases/output/). If using regions of interest (roi) to weight, the simple variant test set was also run up-weighting genes and using random shifts for each variant, with outputs saved in [test_data/test_set_edge_cases/weighted_output](https://github.com/ketringjoni/SuPreMo/blob/main/test_data/test_set_edge_cases/weighted_output/).
 
+For Akita:
 ```shell
 python scripts/SuPreMo.py test_data/test_set_edge_cases/input/test_set_edge_SV.bed \
                             --dir test_data/test_set_edge_cases/output \
@@ -264,18 +280,6 @@ python scripts/SuPreMo.py test_data/test_set_edge_cases/input/test_set_edge_simp
                             --revcomp add_revcomp \
                             --get_Akita_scores
 ```
-
-```shell
-python scripts/SuPreMo.py test_data/test_set_edge_cases/input/test_set_edge_simple.bed \
-                            --dir test_data/test_set_edge_cases/weighted_output \
-                            --file test_set_edge_simple \
-                            --shifts_file test_data/test_set_edge_cases/input/test_set_edge_simple_shift_df \
-                            --get_Akita_scores \
-                            --Akita_cell_types HFF H1hESC \
-                            --roi genes \
-                            --roi_scales 5 10
-```
-
 
 2. [Test set for sequences](https://github.com/ketringjoni/SuPreMo/blob/main/test_data/test_set_sequences/)
 

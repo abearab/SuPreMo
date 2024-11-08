@@ -117,15 +117,14 @@ options:
   --get_Akita_scores    Get disruption scores. If --get_Akita_scores is not specified, must specify --get_seq. Scores saved in a dataframe with the same number of rows as the input. For multiple alternate alleles, the scores are separated by a comma. To convert the scores from strings to integers, use float(x), after separating rows with multiple alternate alleles. Scores go up to 20 decimal points.
                          (default: False)
   --nrows NROWS         Number of rows (perturbations) to read at a time from input. When dealing with large inputs, selecting a subset of rows to read at a time allows scores to be saved in increments and uses less memory. Files with scores and filtered out variants will be temporarily saved in output direcotry. The file names will have a suffix corresponding to the set of nrows (0-based), for example for an input with 2700 rows and with nrows = 1000, there will be 3 sets. At the end of the run, these files will be concatenated into a comprehensive file and the temporary files will be removed.
-                                             (default: 1000)
-          
+                                             (default: 1000)            
 '''
 
 
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 # Parse through arguments
-
+import pickle
 import argparse
 
 class CustomFormatter(argparse.RawTextHelpFormatter, argparse.ArgumentDefaultsHelpFormatter):
@@ -349,6 +348,13 @@ parser.add_argument('--get_Akita_scores',
                     action='store_true',
                     required = False)
 
+parser.add_argument('--get_Enformer_scores',
+                    dest = 'get_Enformer_scores',
+                    help = '''Get disruption scores. If --get_Akita_scores is not specified, must specify --get_seq. Scores saved in a dataframe with the same number of rows as the input. For multiple alternate alleles, the scores are separated by a comma. To convert the scores from strings to integers, use float(x), after separating rows with multiple alternate alleles. Scores go up to 20 decimal points.
+''',
+                    action='store_true',
+                    required = False)
+
 parser.add_argument('--nrows',
                     dest = 'nrows', 
                     help = '''Number of rows (perturbations) to read at a time from input. When dealing with large inputs, selecting a subset of rows to read at a time allows scores to be saved in increments and uses less memory. Files with scores and filtered out variants will be temporarily saved in output direcotry. The file names will have a suffix corresponding to the set of nrows (0-based), for example for an input with 2700 rows and with nrows = 1000, there will be 3 sets. At the end of the run, these files will be concatenated into a comprehensive file and the temporary files will be removed.
@@ -381,6 +387,7 @@ get_seq = args.get_seq
 get_tracks = args.get_tracks
 get_maps = args.get_maps
 get_Akita_scores = args.get_Akita_scores
+get_Enformer_scores = args.get_Enformer_scores
 var_set_size = args.nrows
 
 
@@ -419,7 +426,11 @@ if fasta_path is None:
     fasta_path = f'{repo_path}/data/{genome}.fa'
 
 if seq_len != 1048576:
-    get_Akita_scores = False
+   get_Akita_scores = False
+
+if get_Enformer_scores:
+   seq_len = 393216
+   get_maps = False
 
 if svlen_limit is None:
     svlen_limit = 2/3*seq_len
@@ -427,12 +438,8 @@ elif svlen_limit > 2/3*seq_len:
     raise ValueError("Maximum SV length limit should not be >2/3 of sequence length.")
 
 if not get_seq and not get_Akita_scores:
-    raise ValueError('Either get_seq and/or get_Akita_scores must be specified.')
-
-if roi is not None and not get_Akita_scores:
-    raise ValueError('get_Akita_scores must be specified to use roi.')
+    raise ValueError('Either get_seq and/or get_Akita_scores must be True.')
     
-
 
 # Adjust shift input: Remove shifts that are outside of allowed range
 max_shift = 0.4*seq_len
@@ -465,13 +472,13 @@ if get_seq:
     
 if get_maps:
     variant_maps = {}
-    if get_Akita_scores == False:
+    if get_Akita_scores == False and get_Enformer_scores == False:
         get_Akita_scores = True
         print('Must get scores to get maps. --get_Akita_scores was not specified but will be applied.')
     
 if get_tracks:
     variant_tracks = {}
-    if get_Akita_scores == False:
+    if get_Akita_scores == False and get_Enformer_scores == False:
         get_Akita_scores = True
         print('Must get scores to get tracks. --get_Akita_scores was not specified but will be applied.')
 
@@ -513,21 +520,7 @@ if get_Akita_scores:
     import get_Akita_scores_utils
     get_Akita_scores_utils.chrom_lengths = chrom_lengths
     get_Akita_scores_utils.centromere_coords = centromere_coords
-   
-    if roi is None or roi_scales == [0]:
-        use_roi = False
-    else:
-        use_roi = True
-        
-        import get_roi_utils
-        get_roi_utils.pred_len = get_Akita_scores_utils.target_length_cropped * get_Akita_scores_utils.bin_size
-        get_roi_utils.d = get_Akita_scores_utils.bin_size * 5
 
-        get_Akita_scores_utils.roi_coords_BED = get_roi_utils.get_roi(roi, genome)
-        
-        from pybedtools import BedTool
-        get_Akita_scores_utils.BedTool = BedTool
-        get_Akita_scores_utils.roi_scales = roi_scales
    
     
 import sys
@@ -657,7 +650,6 @@ while True:
             for revcomp in revcomp_decision_i:
 
                 try:
-
                     if revcomp:
                         revcomp_annot = '_revcomp'
                     else:
@@ -692,7 +684,7 @@ while True:
     
                         for ii in range(len(sequences_i[:-1][:3])): 
                             sequences[f'{var_index}_{shift}{revcomp_annot}_{ii}_{var_rel_pos}'] = sequences_i[:-1][ii]
-    
+
                     if get_Akita_scores:
                         
                         scores = get_Akita_scores_utils.get_scores(CHR, POS, SVTYPE, SVLEN, 
@@ -726,14 +718,10 @@ while True:
     
                     print(str(var_index) + ' (' + str(shift) + f' shift{revcomp_annot})')
 
-                except Exception as e: 
-
+                except Exception as e:
                     print(str(var_index) + ' (' + str(shift) + f' shift{revcomp_annot})' + ': Error:', e)
 
-                    pass
- 
-    
-      
+
     # Write standard output with error messages and warnings to log file
     sys.stdout = std_output
     log_file.close()
@@ -753,7 +741,7 @@ while True:
             sequences_all.update(sequences)
 
     # Write scores to data frame
-    if get_Akita_scores:
+    if get_Akita_scores or get_Enformer_scores:
 
         # Take average of augmented sequences
         if augment:
@@ -833,7 +821,11 @@ if get_seq:
     
 # Write disruption tracks and/or predictions to array
 if get_tracks:
-    np.save(f'{out_file}_tracks.npy', variant_tracks_all) 
+    if get_Enformer_scores:
+        with open(f'{out_file}_tracks.pkl', "wb") as f:
+            pickle.dump(variant_tracks_all, f)
+    else:
+        np.save(f'{out_file}_tracks.npy', variant_tracks_all) 
 if get_maps:
     np.save(f'{out_file}_maps.npy', variant_maps_all) 
 
@@ -847,7 +839,7 @@ os.system(f'rm -f {out_file}_log; \
             for file in {out_file}_log_*; \
             do cat "$file" >> {out_file}_log && rm "$file"; \
             done')
-if get_Akita_scores:
+if get_Akita_scores | get_Enformer_scores:
     os.system(f'rm -f {out_file}_scores; \
                 for file in {out_file}_scores_*; \
                 do cat "$file" >> {out_file}_scores && rm "$file"; \
